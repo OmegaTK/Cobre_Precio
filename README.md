@@ -1,2 +1,0 @@
-# Cobre_Precio
-Cobre_precio_prediccion
