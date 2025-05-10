@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escenarios de Pronóstico - Precio del Cobre</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .scenario-up { color: green; font-weight: bold; }
+        .scenario-down { color: red; font-weight: bold; }
+        .confidence-high { background-color: #d4edda; }
+        .confidence-medium { background-color: #fff3cd; }
+        .confidence-low { background-color: #f8d7da; }
+        .price-tag { font-size: 24px; font-weight: bold; }
+        .last-price { background-color: #e9ecef; padding: 10px; border-radius: 5px; }
+        .scenario-card-alcista { border-left: 5px solid green; }
+        .scenario-card-bajista { border-left: 5px solid red; }
+        .scenario-card-base { border-left: 5px solid blue; }
+        .scenario-card-conservador { border-left: 5px solid purple; }
+        .history-table { font-size: 0.9rem; width: 100%; }
+        .history-table th { background-color: #e9ecef; }
+        .graph-tabs .nav-link.active { font-weight: bold; }
+        iframe { border: none; width: 100%; height: 500px; }
+        .forecast-comparison {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        .text-success {
+            color: #28a745 !important;
+            font-weight: bold;
+        }
+        .text-danger {
+            color: #dc3545 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Escenarios de Pronóstico - Precio del Cobre</h1>
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card last-price">
+                    <div class="card last-price">
+                        <div class="card-body text-center">
+                          <h5>Último precio conocido (09-05-2025)</h5>
+                            <div class="price-tag">430.26 USD/lb</div>
+                                <div class="forecast-comparison mt-2">
+                          Mejor pronóstico: <span class='badge bg-success'>ALCISTA</span> con valor 430.4 USD/lb (<span class='text-success'>Alta precisión</span>)
+                        </div>
+                  </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Columna izquierda: Escenarios Base y Conservador -->
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card scenario-card-base">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Escenario BASE</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="price-tag scenario-down">428.11 USD/lb</div>
+                                <p>Cambio: -0.5%</p>
+                                <p>Dirección: <strong>BAJA</strong></p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 78%"
+                                         aria-valuenow="78" aria-valuemin="0" aria-valuemax="100">
+                                         78% Confianza
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card scenario-card-conservador">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Escenario CONSERVADOR</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="price-tag scenario-down">429.18 USD/lb</div>
+                                <p>Cambio: -0.25%</p>
+                                <p>Dirección: <strong>BAJA</strong></p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 65%"
+                                         aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">
+                                         65% Confianza
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="card scenario-card-alcista">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Escenario ALCISTA</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="price-tag scenario-up">433.03 USD/lb</div>
+                                <p>Cambio: +0.65%</p>
+                                <p>Dirección: <strong>ALZA</strong></p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                        style="width: 56%"
+                                        aria-valuenow="56" aria-valuemin="0" aria-valuemax="100">
+                                        56% Confianza
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card scenario-card-bajista">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0">Escenario BAJISTA</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="price-tag scenario-down">423.19 USD/lb</div>
+                                <p>Cambio: -1.64%</p>
+                                <p>Dirección: <strong>BAJA</strong></p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                        style="width: 86%"
+                                        aria-valuenow="86" aria-valuemin="0" aria-valuemax="100">
+                                        86% Confianza
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+<!-- Columna derecha: Historial de pronósticos -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Historial de Pronósticos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Escenario</th>
+                                        <th>Valor</th>
+                                        <th>Dir.</th>
+                                        <th>Conf.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>2025-05-12</td><td><span class='badge bg-success'>ALCISTA</span></td><td>433.03</td><td class='text-success'>ALZA</td><td>56%</td></tr><tr><td>2025-05-12</td><td><span class='badge bg-danger'>BAJISTA</span></td><td>423.19</td><td class='text-danger'>BAJA</td><td>86%</td></tr><tr><td>2025-05-12</td><td><span class='badge bg-primary'>BASE</span></td><td>428.11</td><td class='text-danger'>BAJA</td><td>78%</td></tr><tr><td>2025-05-12</td><td><span class='badge bg-secondary'>CONSERVADOR</span></td><td>429.18</td><td class='text-danger'>BAJA</td><td>65%</td></tr><tr><td>2025-05-09</td><td><span class='badge bg-success'>ALCISTA</span></td><td>430.40</td><td class='text-success'>ALZA</td><td>60%</td></tr><tr><td>2025-05-09</td><td><span class='badge bg-danger'>BAJISTA</span></td><td>420.54</td><td class='text-danger'>BAJA</td><td>78%</td></tr><tr><td>2025-05-09</td><td><span class='badge bg-primary'>BASE</span></td><td>425.47</td><td class='text-danger'>BAJA</td><td>69%</td></tr><tr><td>2025-05-09</td><td><span class='badge bg-secondary'>CONSERVADOR</span></td><td>426.22</td><td class='text-danger'>BAJA</td><td>65%</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Gráficos de Escenarios</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs graph-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="interactive-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#interactive" type="button" role="tab" 
+                                    aria-controls="interactive" aria-selected="true">Gráfico Interactivo</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="static-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#static" type="button" role="tab" 
+                                    aria-controls="static" aria-selected="false">Gráfico Estático</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="interactive" role="tabpanel" aria-labelledby="interactive-tab">
+                                <iframe src="figuras/escenarios_pronostico_interactivo.html"></iframe>
+                            </div>
+                            <div class="tab-pane fade" id="static" role="tabpanel" aria-labelledby="static-tab">
+                                <img src="figuras/escenarios_pronostico.png" class="img-fluid" alt="Escenarios de Pronóstico">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="mt-4 text-center text-muted">
+            <p>Análisis generado el 2025-05-09 18:55:00</p>
+            <p>Usuario: OmegaTK</p>
+        </footer>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
