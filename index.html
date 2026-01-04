@@ -1,220 +1,293 @@
-
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escenarios de Pronóstico - Precio del Cobre</title>
+    <title>Pronóstico del Cobre | Dashboard Profesional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <style>
-        body { padding: 20px; background-color: #f8f9fa; }
-        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .scenario-up { color: green; font-weight: bold; }
-        .scenario-down { color: red; font-weight: bold; }
-        .confidence-high { background-color: #d4edda; }
-        .confidence-medium { background-color: #fff3cd; }
-        .confidence-low { background-color: #f8d7da; }
-        .price-tag { font-size: 24px; font-weight: bold; }
-        .last-price { background-color: #e9ecef; padding: 10px; border-radius: 5px; }
-        .scenario-card-alcista { border-left: 5px solid green; }
-        .scenario-card-bajista { border-left: 5px solid red; }
-        .scenario-card-base { border-left: 5px solid blue; }
-        .scenario-card-conservador { border-left: 5px solid purple; }
-        .history-table { font-size: 0.9rem; width: 100%; }
-        .history-table th { background-color: #e9ecef; }
-        .graph-tabs .nav-link.active { font-weight: bold; }
-        iframe { border: none; width: 100%; height: 500px; }
-        .forecast-comparison {
-            margin-top: 10px;
-            padding: 8px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            font-size: 0.9rem;
+        :root {
+            --primary-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
-        .text-success {
-            color: #28a745 !important;
-            font-weight: bold;
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            padding-bottom: 40px;
         }
-        .text-danger {
-            color: #dc3545 !important;
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-header {
+            padding: 40px 0;
+            text-align: center;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .price-display {
+            font-size: 3.5rem;
+            font-weight: 800;
+        }
+
+        #chart {
+            min-height: 400px;
+        }
+
+        .badge-soft-success {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .badge-soft-danger {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1 class="text-center mb-4">Escenarios de Pronóstico - Precio del Cobre</h1>
-  <div class="alert alert-info text-center mb-4">
-  <strong>Unidad de medida:</strong> Cobre (¢US$/lb)
-</div>
-<div class="alert alert-secondary text-center mb-3">
-  <strong>Nota:</strong> El pronóstico mostrado corresponde al <u>10-06-2025</u>.
-  </div>
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card last-price">
-                    <div class="card last-price">
-                        <div class="card-body text-center">
-                          <h5>Último precio conocido (09-06-2025)</h5>
-                            <div class="price-tag">446.74 ¢USD/lb</div>
-                                <div class="forecast-comparison mt-2">
-                          Mejor pronóstico 2025-06-09 : <span class='badge bg-success'>ALCISTA</span> con valor 444.55 ¢USD/lb (<span class='text-success'>Alta precisión</span>)
-                        </div>
-                  </div>
+
+    <div class="container" id="app">
+        <h1 class="main-header">Escenarios de Pronóstico</h1>
+
+        <div id="offline-alert" class="alert alert-warning text-center d-none" role="alert">
+            <strong>Modo Demostración:</strong> No se pudo conectar al servidor. Mostrando datos de ejemplo.
+            <br><small>Recuerda ejecutar <code>node server.js</code> para habilitar la edición.</small>
+        </div>
+
+        <div class="row mb-5 justify-content-center">
+            <div class="col-md-8 text-center">
+                <p class="text-muted mb-4">Unidad: <strong>Cobre (¢US$/lb)</strong> | Fecha Pronóstico: <span
+                        id="forecast-date">-</span></p>
+                <div class="glass-card mb-4"
+                    style="background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 1) 100%);">
+                    <h6 class="text-uppercase text-muted mb-3">Último precio (<span id="last-price-date">-</span>)</h6>
+                    <div class="price-display mb-2"><span id="current-price">---.--</span> <span
+                            class="text-muted fs-4">¢USD/lb</span></div>
+                    <div class="mt-3 p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                        <span class="text-muted">Mejor estimación:</span>
+                        <span id="best-forecast-badge" class="badge rounded-pill mx-2">-</span>
+                        <strong id="best-forecast-val" class="text-white fs-5">-</strong>
+                    </div>
+                </div>
             </div>
         </div>
-        
+
+        <div class="row g-4 mb-5" id="scenarios-container">
+        </div>
+
         <div class="row">
-            <!-- Columna izquierda: Escenarios Base y Conservador -->
-            <div class="col-md-8">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card scenario-card-base">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">Escenario BASE</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="price-tag scenario-down">444.24 ¢USD/lb</div>
-                                <p>Cambio: -0.56%</p>
-                                <p>Dirección: <strong>BAJA</strong></p>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: 83%"
-                                         aria-valuenow="83" aria-valuemin="0" aria-valuemax="100">
-                                         83% Confianza
-                                    </div>
-                                </div>
-                            </div>
+            <div class="col-lg-12 mb-4">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0 fw-bold">Tendencia y Proyección</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-light active">Interactivo</button>
                         </div>
                     </div>
-                    
-                    <div class="col-md-6">
-                        <div class="card scenario-card-conservador">
-                            <div class="card-header bg-secondary text-white">
-                                <h5 class="mb-0">Escenario CONSERVADOR</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="price-tag scenario-down">445.24 ¢USD/lb</div>
-                                <p>Cambio: -0.34%</p>
-                                <p>Dirección: <strong>BAJA</strong></p>
-                                <div class="progress">
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 69%"
-                                         aria-valuenow="69" aria-valuemin="0" aria-valuemax="100">
-                                         69% Confianza
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <div class="card scenario-card-alcista">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0">Escenario ALCISTA</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="price-tag scenario-up">448.08 ¢USD/lb</div>
-                                <p>Cambio: +0.3%</p>
-                                <p>Dirección: <strong>ALZA</strong></p>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" role="progressbar" 
-                                        style="width: 55%"
-                                        aria-valuenow="55" aria-valuemin="0" aria-valuemax="100">
-                                        55% Confianza
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="card scenario-card-bajista">
-                            <div class="card-header bg-danger text-white">
-                                <h5 class="mb-0">Escenario BAJISTA</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="price-tag scenario-down">440.54 ¢USD/lb</div>
-                                <p>Cambio: -1.39%</p>
-                                <p>Dirección: <strong>BAJA</strong></p>
-                                <div class="progress">
-                                    <div class="progress-bar bg-danger" role="progressbar" 
-                                        style="width: 86%"
-                                        aria-valuenow="86" aria-valuemin="0" aria-valuemax="100">
-                                        86% Confianza
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-<!-- Columna derecha: Historial de pronósticos -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Historial de Pronósticos</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-sm history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Fecha</th>
-                                        <th>Escenario</th>
-                                        <th>Valor</th>
-                                        <th>Dir.</th>
-                                        <th>Conf.</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td>2025-06-10</td><td><span class='badge bg-success'>ALCISTA</span></td><td>448.08</td><td class='text-success'>ALZA</td><td>55%</td></tr><tr><td>2025-06-10</td><td><span class='badge bg-danger'>BAJISTA</span></td><td>440.54</td><td class='text-danger'>BAJA</td><td>86%</td></tr><tr><td>2025-06-10</td><td><span class='badge bg-primary'>BASE</span></td><td>444.24</td><td class='text-danger'>BAJA</td><td>83%</td></tr><tr><td>2025-06-10</td><td><span class='badge bg-dark'>CONSERVADOR</span></td><td>445.24</td><td class='text-danger'>BAJA</td><td>69%</td></tr><tr><td>2025-06-09</td><td><span class='badge bg-success'>ALCISTA</span></td><td>444.55</td><td class='text-success'>ALZA</td><td>55%</td></tr><tr><td>2025-06-09</td><td><span class='badge bg-danger'>BAJISTA</span></td><td>437.00</td><td class='text-danger'>BAJA</td><td>91%</td></tr><tr><td>2025-06-09</td><td><span class='badge bg-primary'>BASE</span></td><td>440.71</td><td class='text-danger'>BAJA</td><td>94%</td></tr><tr><td>2025-06-09</td><td><span class='badge bg-dark'>CONSERVADOR</span></td><td>442.14</td><td class='text-danger'>BAJA</td><td>69%</td></tr><tr><td>2025-06-06</td><td><span class='badge bg-success'>ALCISTA</span></td><td>447.37</td><td class='text-success'>ALZA</td><td>55%</td></tr><tr><td>2025-06-06</td><td><span class='badge bg-danger'>BAJISTA</span></td><td>439.81</td><td class='text-danger'>BAJA</td><td>86%</td></tr><tr><td>2025-06-06</td><td><span class='badge bg-primary'>BASE</span></td><td>443.47</td><td class='text-danger'>BAJA</td><td>83%</td></tr><tr><td>2025-06-06</td><td><span class='badge bg-dark'>CONSERVADOR</span></td><td>444.51</td><td class='text-danger'>BAJA</td><td>69%</td></tr><tr><td>2025-06-05</td><td><span class='badge bg-success'>ALCISTA</span></td><td>440.08</td><td class='text-success'>ALZA</td><td>55%</td></tr><tr><td>2025-06-05</td><td><span class='badge bg-danger'>BAJISTA</span></td><td>432.52</td><td class='text-danger'>BAJA</td><td>86%</td></tr><tr><td>2025-06-05</td><td><span class='badge bg-primary'>BASE</span></td><td>436.20</td><td class='text-danger'>BAJA</td><td>83%</td></tr><tr><td>2025-06-05</td><td><span class='badge bg-dark'>CONSERVADOR</span></td><td>437.24</td><td class='text-danger'>BAJA</td><td>69%</td></tr><tr><td>2025-06-04</td><td><span class='badge bg-success'>ALCISTA</span></td><td>438.56</td><td class='text-success'>ALZA</td><td>55%</td></tr><tr><td>2025-06-04</td><td><span class='badge bg-danger'>BAJISTA</span></td><td>430.98</td><td class='text-danger'>BAJA</td><td>87%</td></tr><tr><td>2025-06-04</td><td><span class='badge bg-primary'>BASE</span></td><td>434.73</td><td class='text-danger'>BAJA</td><td>85%</td></tr><tr><td>2025-06-04</td><td><span class='badge bg-dark'>CONSERVADOR</span></td><td>435.80</td><td class='text-danger'>BAJA</td><td>69%</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <div id="chart"></div>
                 </div>
             </div>
         </div>
-        
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">Gráficos de Escenarios</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="nav nav-tabs graph-tabs" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="interactive-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#interactive" type="button" role="tab" 
-                                    aria-controls="interactive" aria-selected="true">Gráfico Interactivo</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="static-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#static" type="button" role="tab" 
-                                    aria-controls="static" aria-selected="false">Gráfico Estático</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="interactive" role="tabpanel" aria-labelledby="interactive-tab">
-                                <iframe src="figuras/escenarios_pronostico_interactivo.html"></iframe>
-                            </div>
-                            <div class="tab-pane fade" id="static" role="tabpanel" aria-labelledby="static-tab">
-                                <img src="figuras/escenarios_pronostico.png" class="img-fluid" alt="Escenarios de Pronóstico">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <footer class="mt-4 text-center text-muted">
-            <p>Análisis generado el 2025-06-09 22:55:00</p>
-            <p>Usuario: JABF</p>
+
+        <footer class="text-center text-muted mt-5 mb-5">
+            <small>Sistema de Pronósticos v2.1 | <a href="admin.html" class="text-white text-decoration-none">Admin
+                    Panel</a></small>
         </footer>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
 
+    <script>
+        const DEFAULT_DATA = {
+            "lastUpdate": "2025-06-09",
+            "forecastDate": "2025-06-10",
+            "currentPrice": { "value": 446.74, "date": "2025-06-09" },
+            "bestForecast": { "scenario": "ALCISTA", "value": 444.55, "precision": "Alta precisión" },
+            "scenarios": {
+                "base": { "name": "BASE", "value": 444.24, "change": -0.56, "direction": "BAJA", "confidence": 83, "color": "primary" },
+                "conservador": { "name": "CONSERVADOR", "value": 445.24, "change": -0.34, "direction": "BAJA", "confidence": 69, "color": "secondary" },
+                "alcista": { "name": "ALCISTA", "value": 448.08, "change": 0.3, "direction": "ALZA", "confidence": 55, "color": "success" },
+                "bajista": { "name": "BAJISTA", "value": 440.54, "change": -1.39, "direction": "BAJA", "confidence": 86, "color": "danger" }
+            },
+            "chartData": {
+                "dates": ["2025-05-20", "2025-05-25", "2025-05-30", "2025-06-04", "2025-06-05", "2025-06-06", "2025-06-09"],
+                "prices": [425.50, 430.10, 428.80, 434.73, 436.20, 443.47, 446.74]
+            }
+        };
+
+        const API_URL = '/api/data';
+
+        async function init() {
+            let data = DEFAULT_DATA;
+            let usedFallback = false;
+
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Server unreachable');
+                data = await response.json();
+            } catch (error) {
+                console.warn('Backend no detectado. Usando datos de ejemplo.', error);
+                document.getElementById('offline-alert').classList.remove('d-none');
+                usedFallback = true;
+            }
+
+            render(data);
+        }
+
+        function render(data) {
+            document.getElementById('forecast-date').textContent = data.forecastDate;
+            document.getElementById('last-price-date').textContent = data.currentPrice.date;
+            document.getElementById('current-price').textContent = data.currentPrice.value;
+
+            const bf = data.bestForecast;
+            const badge = document.getElementById('best-forecast-badge');
+            badge.textContent = bf.scenario;
+            badge.className = `badge rounded-pill mx-2 bg-${getScenarioColor(bf.scenario)}`;
+            document.getElementById('best-forecast-val').textContent = `${bf.value} ¢USD/lb`;
+
+            const container = document.getElementById('scenarios-container');
+            container.innerHTML = '';
+            Object.values(data.scenarios).forEach(sc => {
+                const col = document.createElement('div');
+                col.className = 'col-md-6 col-lg-3';
+                col.innerHTML = `
+                    <div class="glass-card h-100 position-relative overflow-hidden" 
+                         style="border-bottom: 4px solid var(--bs-${sc.color})"
+                         data-bs-toggle="tooltip" data-bs-placement="top"
+                         title="${getScenarioDescription(sc.name)}">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="text-white mb-0 fw-bold letter-spacing-1">${sc.name}</h6>
+                            <span class="badge bg-${sc.color} bg-opacity-25 text-${sc.color}">${sc.change > 0 ? '+' : ''}${sc.change}%</span>
+                        </div>
+                        <div class="text-center py-2">
+                            <div class="display-6 fw-bold mb-0">${sc.value}</div>
+                            <small class="text-muted">¢USD/lb</small>
+                        </div>
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between small text-muted mb-1">
+                                <span>Confianza</span>
+                                <span class="text-white fw-bold">${sc.confidence}%</span>
+                            </div>
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                                <div class="progress-bar bg-${sc.color}" style="width: ${sc.confidence}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(col);
+            });
+
+            const dates = [...data.chartData ? data.chartData.dates : []];
+            const prices = [...data.chartData ? data.chartData.prices : []];
+
+            const lastDate = dates[dates.length - 1];
+            if (lastDate !== data.forecastDate) {
+            }
+
+            const options = {
+                chart: {
+                    type: 'area',
+                    height: 400,
+                    fontFamily: 'Inter, sans-serif',
+                    background: 'transparent',
+                    toolbar: { show: false }
+                },
+                theme: { mode: 'dark' },
+                stroke: { curve: 'smooth', width: 3 },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.1,
+                        stops: [0, 90, 100]
+                    }
+                },
+                series: [{
+                    name: 'Precio Histórico',
+                    data: prices
+                }],
+                xaxis: {
+                    categories: dates,
+                    labels: { style: { colors: '#94a3b8' } },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
+                },
+                yaxis: {
+                    labels: { style: { colors: '#94a3b8' } }
+                },
+                grid: {
+                    borderColor: '#334155',
+                    strokeDashArray: 4
+                },
+                colors: ['#3b82f6'],
+                dataLabels: { enabled: false },
+                markers: { size: 5, hover: { size: 7 } },
+                annotations: {
+                    points: [
+                        {
+                            x: data.currentPrice.date,
+                            y: data.currentPrice.value,
+                            marker: { size: 8, fillColor: '#fff', strokeColor: '#3b82f6', radius: 2 },
+                            label: {
+                                borderColor: '#3b82f6',
+                                style: { color: '#fff', background: '#3b82f6' },
+                                text: 'Actual'
+                            }
+                        }
+                    ]
+                }
+            };
+
+            Object.values(data.scenarios).forEach(sc => {
+            });
+
+            const chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        function getScenarioColor(name) {
+            const map = { 'ALCISTA': 'success', 'BAJISTA': 'danger', 'BASE': 'primary', 'CONSERVADOR': 'secondary' };
+            return map[name] || 'primary';
+        }
+
+        function getScenarioDescription(name) {
+            const descriptions = {
+                'BASE': 'El escenario más probable. Combina tendencias históricas recientes, promedios móviles y la proyección consensuada de múltiples modelos.',
+                'ALCISTA': 'Proyección optimista. Asume condiciones favorables de mercado, alta demanda y factores que impulsan el precio hacia arriba (límite superior del intervalo).',
+                'BAJISTA': 'Proyección pesimista. Considera riesgos de mercado, baja demanda o volatilidad negativa (límite inferior del intervalo de confianza).',
+                'CONSERVADOR': 'Proyección moderada. Se basa en modelos de menor volatilidad (como ETS) para ofrecer una estimación estable y segura.'
+            };
+            return descriptions[name.toUpperCase()] || 'Información del escenario.';
+        }
+
+        init();
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        });
+    </script>
+</body>
+
+</html>
