@@ -21,8 +21,8 @@ Para ejecutar este proyecto necesitas tener instalado:
 
 1.  **Clonar el repositorio**
     ```bash
-    git clone https://github.com/tu-usuario/cobre-precio.git
-    cd Cobre_Precio-main
+    git clone https://github.com/OmegaTK/Cobre-Precio.git
+    cd Cobre_Precio
     ```
 
 2.  **Instalar dependencias de Node.js**
@@ -87,3 +87,4 @@ Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull re
 
 ## 📄 Licencia
 Este proyecto está bajo la Licencia MIT.
+
