@@ -4,7 +4,7 @@ const xlsx = require('xlsx');
 
 const DATA_FILE = path.join(__dirname, '../data.json');
 const FORECAST_FILE = path.join(__dirname, '../modelos/registro_historico_pronosticos.txt');
-const HISTORY_FILE = path.join(__dirname, '../../cobre_precio.csv');
+const HISTORY_FILE = path.join(__dirname, '../cobre_precio.csv');
 
 console.log('Starting dashboard data update...');
 
