@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración | Pronóstico del Cobre</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-gradient: linear-gradient(to right, #3b82f6, #8b5cf6);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            padding-bottom: 40px;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            margin-bottom: 24px;
+        }
+
+        .main-header {
+            padding: 30px 0;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .form-control,
+        .form-select {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: rgba(15, 23, 42, 0.8);
+            color: #fff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+        }
+
+        .table-dark-custom {
+            color: var(--text-main);
+        }
+
+        .table-dark-custom thead th {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-dark-custom td,
+        .table-dark-custom th {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+            padding: 12px 0;
+        }
+
+        .btn-update {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-update:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 main-header mb-0">Panel de Administración</h1>
+            <a href="index.html" class="btn btn-outline-light btn-sm">← Volver al Sitio</a>
+        </div>
+
+        <form id="adminForm">
+            <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-1 text-white">Fuentes de Datos</h4>
+                        <p class="text-muted small mb-0">Gestión de indicadores en tiempo real</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btnUpdateAll" class="btn btn-primary px-4 fw-bold shadow-sm"
+                            style="background: var(--accent-gradient); border: none;">
+                            ⚡ Actualizar Todo
+                        </button>
+                        <button type="button" id="btnRunModel" class="btn btn-outline-light px-3 fw-bold">
+                            🚀 Ejecutar Modelo R
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-dark-custom table-hover w-100 mb-0">
+                        <thead class="sticky-top" style="background: var(--card-bg);">
+                            <tr>
+                                <th style="width: 30%;">Indicador</th>
+                                <th style="width: 25%;">Último Valor</th>
+                                <th style="width: 25%;">Fecha</th>
+                                <th style="width: 10%;">Estado</th>
+                                <th class="text-end" style="width: 10%;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scraping-table">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3 text-end">
+                    <small class="text-muted fst-italic">
+                        <i class="me-1">ℹ</i> Los datos se guardan automáticamente al actualizar.
+                    </small>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 text-white">Edición Manual de Parámetros</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse"
+                        data-bs-target="#manualSection">
+                        Mostrar/Ocultar
+                    </button>
+                </div>
+
+                <div class="collapse show" id="manualSection">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Fecha Actualización</label>
+                            <input type="date" class="form-control" id="lastUpdate">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Fecha Pronóstico</label>
+                            <input type="date" class="form-control" id="forecastDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Precio Actual (¢USD/lb)</label>
+                            <input type="number" step="0.01" class="form-control" id="currentPriceVal">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Fecha Precio</label>
+                            <input type="date" class="form-control" id="currentPriceDate">
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+
+                    <h6 class="text-muted mb-3 text-uppercase small letter-spacing-1">Mejor Pronóstico</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-muted small">Escenario</label>
+                            <select class="form-select" id="bfScenario">
+                                <option value="ALCISTA">ALCISTA</option>
+                                <option value="BAJISTA">BAJISTA</option>
+                                <option value="BASE">BASE</option>
+                                <option value="CONSERVADOR">CONSERVADOR</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted small">Valor</label>
+                            <input type="number" step="0.01" class="form-control" id="bfValue">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted small">Etiqueta Precisión</label>
+                            <input type="text" class="form-control" id="bfPrecision">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow">
+                            💾 Guardar Cambios Manuales
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="scenarios-inputs" class="d-none"></div>
+
+        </form>
+    </div>
+
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-0 shadow">
+                <div class="modal-body text-center p-4">
+                    <h5 id="modalTitle" class="mb-3"></h5>
+                    <p id="modalMessage" class="text-muted"></p>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentData = {};
+
+        const scraperKeys = [
+            'DJCIIM', 'BCOM', 'USDCNY', 'DXY', 'VIX',
+            'PLATA', 'ORO', 'ESTANO', 'COBRE', 'PLOMO', 'NIQUEL', 'ZINC', 'ALUMINIO',
+            'TPM', 'IPSA', 'SP500', 'ENE_INV', 'PETROLEO_CRUD_WT',
+            'FUTUROS_PETROLEO_BRENT', 'BALTIC_DRY_INDEX', 'T10YFF', 'DFF', 'DOLAR_OBS'
+        ];
+
+        async function init() {
+            const resData = await fetch('/api/data');
+            if (resData.ok) {
+                currentData = await resData.json();
+                populateForm(currentData);
+            }
+
+            populateScrapingTable();
+            const resInd = await fetch('/api/indicators');
+            if (resInd.ok) {
+                const savedIndicators = await resInd.json();
+                updateScrapingTableStatus(savedIndicators);
+            }
+        }
+
+        function populateScrapingTable() {
+            const tbody = document.getElementById('scraping-table');
+            tbody.innerHTML = '';
+
+            scraperKeys.forEach(key => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="fw-bold text-white">${key.replace(/_/g, ' ')}</td>
+                    <td id="val-${key}" class="text-info font-monospace">-</td>
+                    <td id="date-${key}" class="text-muted small">-</td>
+                    <td><span id="status-${key}" class="badge bg-secondary bg-opacity-25 text-secondary status-badge">Pendiente</span></td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-update rounded-pill px-3" onclick="runScraper('${key}')">
+                            ⟳
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateScrapingTableStatus(savedData) {
+            Object.keys(savedData).forEach(key => {
+                const item = savedData[key];
+                const valEl = document.getElementById(`val-${key}`);
+                const dateEl = document.getElementById(`date-${key}`);
+                const statusEl = document.getElementById(`status-${key}`);
+
+                if (valEl) {
+                    valEl.innerText = item.value;
+                    if (dateEl) dateEl.innerText = item.date;
+                    if (statusEl) {
+                        statusEl.className = 'badge bg-success bg-opacity-25 text-success status-badge';
+                        statusEl.innerText = 'Guardado';
+                    }
+                }
+            });
+        }
+
+        async function runScraper(key) {
+            const statusEl = document.getElementById(`status-${key}`);
+            const valEl = document.getElementById(`val-${key}`);
+            const dateEl = document.getElementById(`date-${key}`);
+
+            statusEl.className = 'badge bg-warning bg-opacity-25 text-warning status-badge';
+            statusEl.innerText = 'Buscando...';
+
+            try {
+                const res = await fetch(`/api/scrape/${key}`, { method: 'POST' });
+                const data = await res.json();
+
+                if (res.ok && data.value) {
+                    valEl.innerText = data.value;
+                    if (dateEl) dateEl.innerText = 'Ahora';
+                    statusEl.className = 'badge bg-success bg-opacity-25 text-success status-badge';
+                    statusEl.innerText = 'Actualizado';
+                } else {
+                    throw new Error(data.error || 'Sin valor');
+                }
+            } catch (err) {
+                console.error(err);
+                statusEl.className = 'badge bg-danger bg-opacity-25 text-danger status-badge';
+                statusEl.innerText = 'Error';
+            }
+        }
+
+        document.getElementById('btnUpdateAll').addEventListener('click', async () => {
+            const btn = document.getElementById('btnUpdateAll');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Actualizando...';
+
+            for (const key of scraperKeys) {
+                const row = document.getElementById(`val-${key}`).closest('tr');
+                row.style.background = 'rgba(59, 130, 246, 0.1)';
+
+                await runScraper(key);
+
+                row.style.background = 'transparent';
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+
+        document.getElementById('btnRunModel').addEventListener('click', async () => {
+            const btn = document.getElementById('btnRunModel');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Ejecutando...';
+
+            try {
+                const res = await fetch('/api/run-model', { method: 'POST' });
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('✅ Modelo ejecutado con éxito.\n' + (data.message || ''));
+                    init();
+                } else {
+                    alert('❌ Error al ejecutar modelo:\n' + JSON.stringify(data));
+                }
+            } catch (err) {
+                alert('Error de red al intentar ejecutar el modelo.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        function populateForm(data) {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('lastUpdate').value = today;
+            document.getElementById('forecastDate').value = data.forecastDate;
+            document.getElementById('currentPriceVal').value = data.currentPrice.value;
+            document.getElementById('currentPriceDate').value = data.currentPrice.date;
+            document.getElementById('bfScenario').value = data.bestForecast.scenario;
+            document.getElementById('bfValue').value = data.bestForecast.value;
+            document.getElementById('bfPrecision').value = data.bestForecast.precision;
+
+            const container = document.getElementById('scenarios-inputs');
+            container.innerHTML = '';
+            Object.keys(data.scenarios).forEach(key => {
+                const val = data.scenarios[key].value;
+                const div = document.createElement('div');
+                div.innerHTML = `<input type="hidden" data-group="scenarios" data-key="${key}" data-field="value" value="${val}">`;
+                container.appendChild(div);
+            });
+        }
+
+        document.getElementById('adminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newData = JSON.parse(JSON.stringify(currentData));
+            newData.lastUpdate = document.getElementById('lastUpdate').value;
+            newData.forecastDate = document.getElementById('forecastDate').value;
+            newData.currentPrice.value = parseFloat(document.getElementById('currentPriceVal').value);
+            newData.currentPrice.date = document.getElementById('currentPriceDate').value;
+
+            newData.bestForecast.scenario = document.getElementById('bfScenario').value;
+            newData.bestForecast.value = parseFloat(document.getElementById('bfValue').value);
+            newData.bestForecast.precision = document.getElementById('bfPrecision').value;
+
+            const inputs = document.querySelectorAll('[data-group="scenarios"]');
+            inputs.forEach(input => {
+                const key = input.dataset.key;
+                const field = input.dataset.field;
+                let val = input.value;
+                if (input.type === 'number') val = parseFloat(val);
+                newData.scenarios[key][field] = val;
+            });
+
+            // Send to server
+            try {
+                const res = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newData)
+                });
+                if (res.ok) {
+                    alert('¡Datos actualizados correctamente!');
+                } else {
+                    alert('Error al guardar datos.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de conexión.');
+            }
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
